@@ -5,10 +5,6 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,8 +13,8 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -45,14 +41,14 @@ public class SRFont extends JPanel{
         columns = 4;
         metrics = new Metric[rows*columns];
         valid = false;
+    }
+	
+    public void draw(){
         for(int i = 0; i < 64; i++){
             for(int j = 0; j < 512; j++){
                 image.setRGB(i, j, Color.black.getRGB());
             }
         }
-    }
-	
-    public void draw(){
         Graphics g = image.getGraphics();
         g.drawImage(image,0,0,Color.black,null);
         if(curFont != null){
@@ -66,15 +62,21 @@ public class SRFont extends JPanel{
                     String s = ""+c;
                     int pr = i*16;
                     int pc = j*16;
-                    metrics[counter] = new Metric(c, pr, pc-16, fm.charWidth(c));
+                    int w = fm.charWidth(c);
+                    //System.out.println(c + ": " + w);
+                    metrics[counter] = new Metric(c, pr, pc-16, w);
                     g.drawString(s, pr, pc-3);
                     counter++;
                 }
             }
         }
     }
-
-    public Font loadFont(File fil) throws IOException, FontFormatException{
+    
+    public Font loadFont(File f) throws IOException, FontFormatException{
+        return loadFont(f, 16.0f);
+    }
+    
+    public Font loadFont(File fil, double size) throws IOException, FontFormatException{
         FileInputStream fis;
         Font fon = null;
         try{
@@ -87,6 +89,10 @@ public class SRFont extends JPanel{
 
         }
         return fon;
+    }
+    
+    public void updateFont(int size){
+        if(curFont != null) this.curFont = curFont.deriveFont(Font.PLAIN, size);
     }
     
     void loadTtf(){
@@ -159,7 +165,7 @@ public class SRFont extends JPanel{
                 } 
 
                 catch (IOException ex) {
-                    System.out.println(new File(".").getAbsolutePath());
+                    Logger.getLogger(SRFont.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
                 }
             }
         }
